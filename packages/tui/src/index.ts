@@ -4,6 +4,7 @@
 export {
 	type AutocompleteItem,
 	type AutocompleteProvider,
+	type AutocompleteSuggestions,
 	CombinedAutocompleteProvider,
 	type SlashCommand,
 } from "./autocomplete.js";
@@ -32,12 +33,16 @@ export type { EditorComponent } from "./editor-component.js";
 export { type FuzzyMatch, fuzzyFilter, fuzzyMatch } from "./fuzzy.js";
 // Keybindings
 export {
-	DEFAULT_EDITOR_KEYBINDINGS,
-	type EditorAction,
-	type EditorKeybindingsConfig,
-	EditorKeybindingsManager,
-	getEditorKeybindings,
-	setEditorKeybindings,
+	getKeybindings,
+	type Keybinding,
+	type KeybindingConflict,
+	type KeybindingDefinition,
+	type KeybindingDefinitions,
+	type Keybindings,
+	type KeybindingsConfig,
+	KeybindingsManager,
+	setKeybindings,
+	TUI_KEYBINDINGS,
 } from "./keybindings.js";
 // Keyboard input handling
 export {

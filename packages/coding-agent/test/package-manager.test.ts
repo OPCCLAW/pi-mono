@@ -106,6 +106,22 @@ Content`,
 			expect(result.skills.some((r) => r.path === skillFile && r.enabled)).toBe(true);
 		});
 
+		it("should auto-discover root markdown skills from .pi skill dirs", async () => {
+			const skillFile = join(agentDir, "skills", "single-file.md");
+			mkdirSync(join(agentDir, "skills"), { recursive: true });
+			writeFileSync(
+				skillFile,
+				`---
+name: single-file
+description: A root markdown skill
+---
+Content`,
+			);
+
+			const result = await packageManager.resolve();
+			expect(result.skills.some((r) => r.path === skillFile && r.enabled)).toBe(true);
+		});
+
 		it("should resolve project paths relative to .pi", async () => {
 			const extDir = join(tempDir, ".pi", "extensions");
 			mkdirSync(extDir, { recursive: true });
@@ -232,6 +248,26 @@ Content`,
 			expect(result.skills.some((r) => r.path === middleSkill && r.enabled)).toBe(true);
 		});
 
+		it("should ignore root markdown files in .agents/skills", async () => {
+			const agentsSkillsDir = join(tempDir, ".agents", "skills");
+			mkdirSync(join(agentsSkillsDir, "nested-skill"), { recursive: true });
+			const rootSkill = join(agentsSkillsDir, "root-file.md");
+			const nestedSkill = join(agentsSkillsDir, "nested-skill", "SKILL.md");
+			writeFileSync(rootSkill, "---\nname: root-file\ndescription: Root markdown file\n---\n");
+			writeFileSync(nestedSkill, "---\nname: nested-skill\ndescription: Nested skill\n---\n");
+
+			const pm = new DefaultPackageManager({
+				cwd: join(tempDir, "work"),
+				agentDir,
+				settingsManager,
+			});
+			mkdirSync(join(tempDir, "work"), { recursive: true });
+
+			const result = await pm.resolve();
+			expect(result.skills.some((r) => r.path === rootSkill)).toBe(false);
+			expect(result.skills.some((r) => r.path === nestedSkill && r.enabled)).toBe(true);
+		});
+
 		it("should keep ~/.agents/skills user-scoped when cwd is under home in a non-git directory", async () => {
 			const previousHome = process.env.HOME;
 			process.env.HOME = tempDir;
@@ -351,6 +387,19 @@ Content`,
 			const result = await packageManager.resolveExtensionSources([pkgDir]);
 			expect(result.extensions.some((r) => pathEndsWith(r.path, "main.ts") && r.enabled)).toBe(true);
 			expect(result.themes.some((r) => pathEndsWith(r.path, "dark.json") && r.enabled)).toBe(true);
+		});
+
+		it("should stop recursing when a package skill directory contains SKILL.md", async () => {
+			const pkgDir = join(tempDir, "skill-root-pkg");
+			mkdirSync(join(pkgDir, "skills", "root-skill", "nested-skill"), { recursive: true });
+			const rootSkill = join(pkgDir, "skills", "root-skill", "SKILL.md");
+			const nestedSkill = join(pkgDir, "skills", "root-skill", "nested-skill", "SKILL.md");
+			writeFileSync(rootSkill, "---\nname: root-skill\ndescription: Root skill\n---\n");
+			writeFileSync(nestedSkill, "---\nname: nested-skill\ndescription: Nested skill\n---\n");
+
+			const result = await packageManager.resolveExtensionSources([pkgDir]);
+			expect(result.skills.some((r) => r.path === rootSkill && r.enabled)).toBe(true);
+			expect(result.skills.some((r) => r.path === nestedSkill)).toBe(false);
 		});
 	});
 
@@ -1293,6 +1342,36 @@ export default function(api) { api.registerTool({ name: "test", description: "te
 	});
 
 	describe("offline mode and network timeouts", () => {
+		it("should update project npm packages using @latest", async () => {
+			settingsManager.setProjectPackages(["npm:example"]);
+
+			const runCommandSpy = vi.spyOn(packageManager as any, "runCommand").mockResolvedValue(undefined);
+
+			await packageManager.update("npm:example");
+
+			expect(runCommandSpy).toHaveBeenCalledWith(
+				"npm",
+				["install", "example@latest", "--prefix", join(tempDir, ".pi", "npm")],
+				undefined,
+			);
+		});
+
+		it("should suggest npm source prefixes for update lookups", async () => {
+			settingsManager.setProjectPackages(["npm:example"]);
+
+			await expect(packageManager.update("example")).rejects.toThrow(
+				"No matching package found for example. Did you mean npm:example?",
+			);
+		});
+
+		it("should suggest git source prefixes for update lookups", async () => {
+			settingsManager.setProjectPackages(["git:github.com/example/repo"]);
+
+			await expect(packageManager.update("github.com/example/repo")).rejects.toThrow(
+				"No matching package found for github.com/example/repo. Did you mean git:github.com/example/repo?",
+			);
+		});
+
 		it("should skip installing missing package sources when offline", async () => {
 			process.env.PI_OFFLINE = "1";
 			settingsManager.setProjectPackages(["npm:missing-package", "git:github.com/example/missing-repo"]);

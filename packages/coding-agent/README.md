@@ -1,3 +1,13 @@
+<!-- OSS_WEEKEND_START -->
+# 🏖️ OSS Weekend
+
+**Issue tracker reopens Monday, April 6, 2026.**
+
+OSS weekend runs Friday, March 27, 2026 through Monday, April 6, 2026. New issues are auto-closed during this time. For support, join [Discord](https://discord.com/invite/3cU7Bz4UPx).
+<!-- OSS_WEEKEND_END -->
+
+---
+
 <p align="center">
   <a href="https://shittycodingagent.ai">
     <img src="https://shittycodingagent.ai/logo.svg" alt="pi logo" width="128">
