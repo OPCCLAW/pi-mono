@@ -1320,13 +1320,13 @@ describe("Generate E2E Tests", () => {
 		beforeAll(async () => {
 			// Check if model is available, if not pull it
 			try {
-				execSync("ollama list | grep -q 'gpt-oss:20b'", { stdio: "ignore" });
+				execSync("ollama list | grep -q 'gpt-oss:120b-cloud'", { stdio: "ignore" });
 			} catch {
-				console.log("Pulling gpt-oss:20b model for Ollama tests...");
+				console.log("Pulling gpt-oss:120b-cloud model for Ollama tests...");
 				try {
-					execSync("ollama pull gpt-oss:20b", { stdio: "inherit" });
+					execSync("ollama pull gpt-oss:120b-cloud", { stdio: "inherit" });
 				} catch (_e) {
-					console.warn("Failed to pull gpt-oss:20b model, tests will be skipped");
+					console.warn("Failed to pull gpt-oss:120b-cloud model, tests will be skipped");
 					return;
 				}
 			}
@@ -1355,7 +1355,7 @@ describe("Generate E2E Tests", () => {
 			});
 
 			llm = {
-				id: "gpt-oss:20b",
+				id: "gpt-oss:120b-cloud",
 				api: "openai-completions",
 				provider: "ollama",
 				baseUrl: "http://localhost:11434/v1",

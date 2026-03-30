@@ -35,6 +35,7 @@ export const defaultModelPerProvider: Record<KnownProvider, string> = {
 	opencode: "claude-opus-4-6",
 	"opencode-go": "kimi-k2.5",
 	"kimi-coding": "kimi-k2-thinking",
+	ollama: "gpt-oss:120b-cloud",
 };
 
 export interface ScopedModel {
